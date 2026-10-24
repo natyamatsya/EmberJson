@@ -487,7 +487,7 @@ def copy_to_string[
                         handle_unicode_codepoint(p, dest, end)
                     else:
                         dest.append(decode_escape(c))
-        return String(unsafe_from_utf8=dest^)
+        return String(unsafe_from_utf8=dest)
 
     comptime if not ignore_unicode:
         if found_escaped:
