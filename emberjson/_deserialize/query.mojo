@@ -100,7 +100,7 @@ def _key_matches(
 
 def parse_pointer[
     options: ParseOptions = ParseOptions()
-](s: StringSlice, path: PointerIndex) raises DeserializationError -> Value:
+](s: StringSpan, path: PointerIndex) raises DeserializationError -> Value:
     """Materializes only the value at `path` from a raw JSON string.
 
     Parameters:
@@ -127,7 +127,7 @@ def parse_pointer[
 
 def parse_pointer[
     options: ParseOptions = ParseOptions()
-](s: StringSlice, path: String) raises DeserializationError -> Value:
+](s: StringSpan, path: String) raises DeserializationError -> Value:
     """Overload of `parse_pointer` taking the pointer as a plain `String`
     (or string literal, which adapts to `String` directly).
 
@@ -150,7 +150,7 @@ def parse_pointer[
 
 def _parse_pointer_impl[
     options: ParseOptions = ParseOptions()
-](s: StringSlice, path: PointerIndex) raises DeserializationError -> Value:
+](s: StringSpan, path: PointerIndex) raises DeserializationError -> Value:
     comptime if options.validate_utf8:
         if not is_valid_utf8(s):
             raise invalid_utf8()
@@ -241,7 +241,7 @@ def _parse_pointer_impl[
 @always_inline
 def try_parse_pointer[
     options: ParseOptions = ParseOptions()
-](s: StringSlice, path: String) -> Optional[Value]:
+](s: StringSpan, path: String) -> Optional[Value]:
     try:
         return parse_pointer[options](s, path)
     except:

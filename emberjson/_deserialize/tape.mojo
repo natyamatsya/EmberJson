@@ -157,7 +157,7 @@ def _arena_len(strings: _Arena, off: Int) -> Int:
 
 
 @always_inline
-def _arena_view(strings: _Arena, off: Int) -> StringSlice[ImmutAnyOrigin]:
+def _arena_view(strings: _Arena, off: Int) -> StringSpan[ImmutAnyOrigin]:
     var n = _arena_len(strings, off)
     var ptr = (
         (strings._ptr.unsafe_offset(off).unsafe_offset(4))
@@ -165,7 +165,7 @@ def _arena_view(strings: _Arena, off: Int) -> StringSlice[ImmutAnyOrigin]:
         .unsafe_origin_cast[ImmutAnyOrigin]()
     )
     var span = Span[Byte, ImmutAnyOrigin](unsafe_ptr=ptr, length=n)
-    return StringSlice(unsafe_from_utf8=span)
+    return StringSpan(unsafe_from_utf8=span)
 
 
 @always_inline

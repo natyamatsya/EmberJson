@@ -323,9 +323,9 @@ struct EmberJsonCursor[
         out self: EmberJsonCursor[Self.origin, Self.options],
         ref[Self.origin] s: String,
     ):
-        self = Self(StringSlice(s).as_bytes())
+        self = Self(StringSpan(s).as_bytes())
 
-    def __init__(out self, s: StringSlice[Self.origin]):
+    def __init__(out self, s: StringSpan[Self.origin]):
         self = Self(s.as_bytes())
 
     def __init__(out self, var b: Span[Byte, Self.origin]):
@@ -833,7 +833,7 @@ struct EmberJsonCursor[
         """
         if self.plain(open + 1, close):
             var idx = field_index[T](
-                StringSlice(
+                StringSpan(
                     unsafe_from_utf8=Span(
                         unsafe_ptr=self.p.data.start.unsafe_offset(open + 1),
                         length=close - open - 1,
@@ -1264,7 +1264,7 @@ def from_json[
     //,
     T: Movable & Deinitable,
     options: ParseOptions = ParseOptions(),
-](s: StringSlice[o], out result: T) raises DeserializationError:
+](s: StringSpan[o], out result: T) raises DeserializationError:
     """Deserializes `s` into `T` through emberserde's framework, driven by
     `EmberJsonDeserializer`.
 

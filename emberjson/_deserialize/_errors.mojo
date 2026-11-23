@@ -115,7 +115,7 @@ def too_deep() -> DeserializationError:
 
 
 @no_inline
-def duplicate_key(key: StringSlice) -> DeserializationError:
+def duplicate_key(key: StringSpan) -> DeserializationError:
     return DeserializationError(
         String("Duplicate key: ") + key, DerErrorKind.DuplicateField
     )
@@ -266,7 +266,7 @@ def expected_value(what: StaticString) -> DeserializationError:
 
 
 @no_inline
-def key_not_found(key: StringSlice) -> DeserializationError:
+def key_not_found(key: StringSpan) -> DeserializationError:
     return _invalid(String("Key not found: ") + key)
 
 
@@ -276,12 +276,12 @@ def index_out_of_bounds() -> DeserializationError:
 
 
 @no_inline
-def invalid_array_index(token: StringSlice) -> DeserializationError:
+def invalid_array_index(token: StringSpan) -> DeserializationError:
     return _invalid(String("Invalid array index: ") + token)
 
 
 @no_inline
-def cannot_traverse(token: StringSlice, by_key: Bool) -> DeserializationError:
+def cannot_traverse(token: StringSpan, by_key: Bool) -> DeserializationError:
     return _invalid(
         String("Primitive value cannot be traversed with ")
         + ("key: " if by_key else "index: ")

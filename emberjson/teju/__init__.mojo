@@ -75,7 +75,7 @@ def write_float[dtype: DType](d: Scalar[dtype], mut writer: Some[Writer]):
     var start = buf.unsafe_ptr()
     var end = format_float(d, start)
     writer.write_string(
-        StringSlice(
+        StringSpan(
             unsafe_from_utf8=Span(
                 unsafe_ptr=start, length=Int(end) - Int(start)
             )

@@ -102,7 +102,7 @@ def from_json[
     //,
     T: Movable & Deinitable,
     options: ParseOptions = ParseOptions(),
-](s: StringSlice[o], out result: T) raises DeserializationError:
+](s: StringSpan[o], out result: T) raises DeserializationError:
     """Deserializes JSON text into `T`.
 
     The single deserialization entry point. `T` selects the strategy at
@@ -170,7 +170,7 @@ def try_from_json[
     //,
     T: Movable & Deinitable,
     options: ParseOptions = ParseOptions(),
-](s: StringSlice[o]) -> Optional[T]:
+](s: StringSpan[o]) -> Optional[T]:
     """Deserializes JSON text into `T`, or `None` on any failure.
 
     Parameters:

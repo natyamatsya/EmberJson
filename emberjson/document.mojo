@@ -165,7 +165,7 @@ struct DocValue[origin: ImmOrigin](Sized, TrivialRegisterPassable):
             return False
         raise Error("DocValue is not a bool")
 
-    def string_slice(self) raises -> StringSlice[Self.origin]:
+    def string_slice(self) raises -> StringSpan[Self.origin]:
         """A zero-copy view of the (already unescaped) string bytes."""
         if unlikely(not self.is_string()):
             raise Error("DocValue is not a string")
@@ -188,7 +188,7 @@ struct DocValue[origin: ImmOrigin](Sized, TrivialRegisterPassable):
             raise Error("DocValue is not an array")
         return DocArray(self._doc, self._idx)
 
-    def __getitem__(self, key: StringSlice) raises -> DocValue[Self.origin]:
+    def __getitem__(self, key: StringSpan) raises -> DocValue[Self.origin]:
         return self.object()[key]
 
     def __getitem__(self, idx: Int) raises -> DocValue[Self.origin]:
@@ -219,7 +219,7 @@ struct DocValue[origin: ImmOrigin](Sized, TrivialRegisterPassable):
 struct DocEntry[origin: ImmOrigin](TrivialRegisterPassable):
     """One key-value pair yielded when iterating a `DocObject`."""
 
-    var key: StringSlice[Self.origin]
+    var key: StringSpan[Self.origin]
     var value: DocValue[Self.origin]
 
 
@@ -244,7 +244,7 @@ struct DocObject[origin: ImmOrigin](Sized, TrivialRegisterPassable):
     def __len__(self) -> Int:
         return _container_count(self._doc[]._tape, self._open_idx)
 
-    def _find(self, key: StringSlice) -> Int:
+    def _find(self, key: StringSpan) -> Int:
         """The tape index of `key`'s value, or -1. Scans pairs with O(1)
         sibling hops; for documents parsed with ALLOW_DUPLICATE_KEYS the
         last match wins (matching the DOM's last-write-wins collapse)."""
@@ -272,14 +272,14 @@ struct DocObject[origin: ImmOrigin](Sized, TrivialRegisterPassable):
             k = _next_tape_idx(self._doc[]._tape, k + 1)
         return found
 
-    def __getitem__(self, key: StringSlice) raises -> DocValue[Self.origin]:
+    def __getitem__(self, key: StringSpan) raises -> DocValue[Self.origin]:
         var idx = self._find(key)
         if unlikely(idx < 0):
             raise Error("KeyError: ", key)
         return DocValue(self._doc, idx)
 
     @always_inline
-    def __contains__(self, key: StringSlice) -> Bool:
+    def __contains__(self, key: StringSpan) -> Bool:
         return self._find(key) >= 0
 
     @always_inline
@@ -406,7 +406,7 @@ struct _DocObjectIter[origin: ImmOrigin](Sized, TrivialRegisterPassable):
 @always_inline
 def _arena_slice[
     origin: ImmOrigin
-](strings: _Arena, off: Int) -> StringSlice[origin]:
+](strings: _Arena, off: Int) -> StringSpan[origin]:
     var n = _arena_len(strings, off)
     var ptr = (
         (strings._ptr.unsafe_offset(off).unsafe_offset(4))
@@ -414,7 +414,7 @@ def _arena_slice[
         .unsafe_origin_cast[origin]()
     )
     var span = Span[Byte, origin](unsafe_ptr=ptr, length=n)
-    return StringSlice(unsafe_from_utf8=span)
+    return StringSpan(unsafe_from_utf8=span)
 
 
 def _container_count(tape: List[UInt64], open_idx: Int) -> Int:
@@ -544,7 +544,7 @@ def _write_tape_value(doc: Document, idx: Int, mut writer: Some[Writer]) -> Int:
 
 def _parse_document_root[
     o: ImmOrigin, //, options: ParseOptions
-](s: StringSlice[o]) raises DeserializationError -> Document:
+](s: StringSpan[o]) raises DeserializationError -> Document:
     """`parse_document`'s parse, with the UTF-8 pre-pass removed.
 
     Split out so `emberjson.from_json` can run the pre-pass once at the

@@ -61,6 +61,8 @@ struct Null(JsonValue, TrivialRegisterPassable):
     def write_repr_to(self, mut writer: Some[Writer]):
         writer.write("Null()")
 
+    comptime ConversionToPythonErrorType = Error
+
     def to_python_object(self) raises -> PythonObject:
         return {}
 
@@ -181,7 +183,7 @@ struct Value(JsonValue, Sized):
         Raises:
             If the string represents an invalid JSON document.
         """
-        self = Self(parse_bytes=StringSlice(parse_string).as_bytes())
+        self = Self(parse_bytes=StringSpan(parse_string).as_bytes())
 
     @always_inline
     def __init__(out self, *, parse_bytes: ByteView[mut=False, ...]) raises:
@@ -476,6 +478,8 @@ struct Value(JsonValue, Sized):
         # Sound because the only self-describing format in scope
         # (`EmberJsonDeserializer`) declares `comptime Value = Value`.
         return rebind_var[Self](d.deserialize_any())
+
+    comptime ConversionToPythonErrorType = Error
 
     def to_python_object(self) raises -> PythonObject:
         if self.is_int():

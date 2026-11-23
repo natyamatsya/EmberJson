@@ -186,7 +186,7 @@ struct EmberJsonStructSer[
     def serialize_field[
         T: AnyType, idx: Int
     ](
-        mut self, field_name: StringSlice, v: Some[AnyType]
+        mut self, field_name: StringSpan, v: Some[AnyType]
     ) raises SerializationError:
         comptime NAME = static_wire_name[T, idx]()
         assert (
@@ -284,7 +284,7 @@ struct EmberJsonSerializer[
         else:
             self.out[].write(v)
 
-    def serialize_string(mut self, v: StringSlice) raises SerializationError:
+    def serialize_string(mut self, v: StringSpan) raises SerializationError:
         write_escaped_string(v, self.out[])
 
     def serialize_none(mut self) raises SerializationError:

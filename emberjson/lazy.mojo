@@ -79,7 +79,7 @@ struct Lazy[
       usually yields plausible but wrong data rather than a crash.
     - Reassigning or appending to the source while the `Lazy` is alive is
       NOT caught when the origin is the whole variable's (`origin_of(s)`);
-      that is a language property shared by every view, `StringSlice(s)`
+      that is a language property shared by every view, `StringSpan(s)`
       included. Borrow from the string's interior instead, which the
       compiler does track:
 
@@ -130,10 +130,10 @@ struct Lazy[
 
     def unsafe_as_string_slice(
         self,
-    ) -> StringSlice[Self.origin]:
+    ) -> StringSpan[Self.origin]:
         # TODO: Use where clause when that actually works
         comptime assert Self.T == String
-        return StringSlice(unsafe_from_utf8=self._data[1 : len(self._data) - 1])
+        return StringSpan(unsafe_from_utf8=self._data[1 : len(self._data) - 1])
 
 
 comptime LazyString[origin: ImmOrigin] = Lazy[String, origin, RawKind.Str]

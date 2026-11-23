@@ -27,7 +27,7 @@ def parse_int(s: String) raises -> Int:
     return res
 
 
-def unescape(token: StringSlice) raises -> String:
+def unescape(token: StringSpan) raises -> String:
     """RFC 6901 §3: `~1` → `/`, `~0` → `~`, in that order of evaluation;
     any other `~` is a syntax error. Bytes between escapes are copied as
     runs so multi-byte UTF-8 sequences stay intact (a `~` is ASCII, so it can

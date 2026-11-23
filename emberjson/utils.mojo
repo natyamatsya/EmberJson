@@ -188,9 +188,7 @@ struct PaddedBuffer(Movable):
     @always_inline
     def span(ref self) -> ByteView[origin_of(self._data)]:
         """The logical input: `len` bytes, with readable NUL padding after."""
-        return Span[Byte, origin_of(self._data)](
-            unsafe_ptr=self._data.unsafe_ptr(), length=self._len
-        )
+        return Span(self._data)[: self._len]
 
 
 comptime StackArray[T: Copyable & Deinitable, size: Int] = StdArray[T, size]
@@ -214,8 +212,8 @@ def is_space(char: Byte) -> Bool:
 
 
 @always_inline
-def to_string(b: ByteView[_]) -> StringSlice[b.origin]:
-    return StringSlice(unsafe_from_utf8=b)
+def to_string(b: ByteView[_]) -> StringSpan[b.origin]:
+    return StringSpan(unsafe_from_utf8=b)
 
 
 @always_inline
@@ -286,10 +284,10 @@ def _needs_escape(bytes: Span[Byte, _], n: Int) -> Bool:
 
 @always_inline
 def write_escaped_string(s: String, mut writer: Some[Writer]):
-    write_escaped_string(StringSlice(s), writer)
+    write_escaped_string(StringSpan(s), writer)
 
 
-def write_escaped_string(s: StringSlice, mut writer: Some[Writer]):
+def write_escaped_string(s: StringSpan, mut writer: Some[Writer]):
     var bytes = s.as_bytes()
     var n = s.byte_length()
 
@@ -319,7 +317,7 @@ def write_escaped_string(s: StringSlice, mut writer: Some[Writer]):
             var pos = Int(count_trailing_zeros(bits))
             if i + pos > start:
                 writer.write_string(
-                    StringSlice(unsafe_from_utf8=bytes[start : i + pos])
+                    StringSpan(unsafe_from_utf8=bytes[start : i + pos])
                 )
             start = i + pos + 1
             _handle_escape(ptr[unsafe_offset=i + pos], writer)
@@ -331,14 +329,14 @@ def write_escaped_string(s: StringSlice, mut writer: Some[Writer]):
         if c == `"` or c == `\\` or c < 32:
             if i > start:
                 writer.write_string(
-                    StringSlice(unsafe_from_utf8=bytes[start:i])
+                    StringSpan(unsafe_from_utf8=bytes[start:i])
                 )
             start = i + 1
             _handle_escape(c, writer)
         i += 1
 
     if start < n:
-        writer.write_string(StringSlice(unsafe_from_utf8=bytes[start:n]))
+        writer.write_string(StringSpan(unsafe_from_utf8=bytes[start:n]))
 
     writer.write_string('"')
 

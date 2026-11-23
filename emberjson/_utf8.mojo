@@ -335,5 +335,5 @@ def is_valid_utf8(s: Span[Byte, _]) -> Bool:
 
 
 @always_inline
-def is_valid_utf8(s: StringSlice) -> Bool:
+def is_valid_utf8(s: StringSpan) -> Bool:
     return is_valid_utf8(s.as_bytes())

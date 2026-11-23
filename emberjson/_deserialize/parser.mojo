@@ -219,7 +219,7 @@ struct Parser[origin: ImmOrigin, options: ParseOptions = ParseOptions()]:
     def __init__(
         out self: Parser[Self.origin, Self.options], ref[Self.origin] s: String
     ):
-        self = {StringSlice(s)}
+        self = {StringSpan(s)}
 
     @implicit
     def __init__(
@@ -228,7 +228,7 @@ struct Parser[origin: ImmOrigin, options: ParseOptions = ParseOptions()]:
         self = {StaticString(s)}
 
     @implicit
-    def __init__(out self, s: StringSlice[Self.origin]):
+    def __init__(out self, s: StringSpan[Self.origin]):
         self = {ptr = s.unsafe_ptr(), length = s.byte_length()}
 
     @implicit
@@ -1137,31 +1137,30 @@ def minify(s: String, out out_str: String) raises:
     var s_len = s.byte_length()
     out_str = String(capacity_bytes=s_len)
 
-    var ptr = BytePtr[origin_of(s)](s.unsafe_ptr())
+    var ptr = s.unsafe_ptr()
     var end = ptr.unsafe_offset(s_len)
 
     @always_inline
-    @__parameter
     def _load_chunk(
-        p: type_of(ptr), cond: Bool
+        p: type_of(ptr), e: type_of(end), cond: Bool
     ) -> SIMD[DType.uint8, SIMD8_WIDTH]:
         if cond:
-            return ptr.unsafe_load[width=SIMD8_WIDTH]()
+            return p.unsafe_load[width=SIMD8_WIDTH]()
         else:
             var chunk = SIMD[DType.uint8, SIMD8_WIDTH](` `)
 
-            for i in range(Int(end) - Int(ptr)):
-                chunk[i] = ptr[unsafe_offset=i]
+            for i in range(Int(e) - Int(p)):
+                chunk[i] = p[unsafe_offset=i]
             return chunk
 
     while ptr < end:
         var is_block_iter = likely(ptr.unsafe_offset(SIMD8_WIDTH) < end)
-        var chunk = _load_chunk(ptr, is_block_iter)
+        var chunk = _load_chunk(ptr, end, is_block_iter)
 
         var bits = get_non_space_bits(chunk)
         while bits == 0 and ptr < end:
             ptr = ptr.unsafe_offset(SIMD8_WIDTH)
-            chunk = _load_chunk(ptr, ptr.unsafe_offset(SIMD8_WIDTH) < end)
+            chunk = _load_chunk(ptr, end, ptr.unsafe_offset(SIMD8_WIDTH) < end)
             bits = get_non_space_bits(chunk)
 
         var trailing = count_trailing_zeros(bits)
@@ -1201,7 +1200,7 @@ def minify(s: String, out out_str: String) raises:
             length += Int(block.quote_index() + 1)
             if unlikely(Int(ptr) + length > Int(end)):
                 raise "Invalid JSON, unterminated string"
-            out_str += StringSlice(
+            out_str += StringSpan(
                 unsafe_from_utf8=Span[Byte, ptr.origin](
                     unsafe_ptr=ptr, length=length
                 )
@@ -1209,13 +1208,13 @@ def minify(s: String, out out_str: String) raises:
             ptr = ptr.unsafe_offset(length)
 
         else:
-            var chunk = _load_chunk(ptr, is_block_iter)
+            var chunk = _load_chunk(ptr, end, is_block_iter)
 
             var quotes = pack_into_integer(chunk.eq(`"`))
             var valid_bits = count_trailing_zeros(~get_non_space_bits(chunk))
             if quotes != 0:
                 valid_bits = min(valid_bits, count_trailing_zeros(quotes))
-            out_str += StringSlice(
+            out_str += StringSpan(
                 unsafe_from_utf8=Span[Byte, ptr.origin](
                     unsafe_ptr=ptr, length=Int(valid_bits)
                 )

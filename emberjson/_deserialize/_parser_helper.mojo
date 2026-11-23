@@ -450,8 +450,7 @@ def copy_to_string[
     """
     var length = ptr_dist(start, end)
 
-    @__parameter
-    def decode_escaped() raises DeserializationError -> String:
+    def decode_escaped() raises DeserializationError {imm} -> String:
         # This will usually slightly overallocate if the string contains
         # escaped unicode
         var dest = List[UInt8](capacity=length)
@@ -492,7 +491,7 @@ def copy_to_string[
     comptime if not ignore_unicode:
         if found_escaped:
             return decode_escaped()
-    # A sized copy: `String(StringSlice)` resolves to the variadic `Writable`
+    # A sized copy: `String(StringSpan)` resolves to the variadic `Writable`
     # constructor, which measures, then writes through a staging buffer.
     var s = String(unsafe_uninit_length=length)
     # Fresh and unique, so its buffer (inline or heap) is ours to write.
