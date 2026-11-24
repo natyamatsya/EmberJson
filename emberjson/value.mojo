@@ -360,7 +360,13 @@ struct Value(JsonValue, Sized):
     @always_inline
     def get[T: Copyable](ref self) -> ref[self._data] T:
         constrain_json_type[T]()
-        return self._data.unsafe_get[T]()
+        # Mojo 1.3 gives `unsafe_get`'s reference the variant's interior
+        # origin, which 1.2 cannot spell; recast it to the variant's own
+        # origin, which both accept (the 1.2 behavior).
+        return (
+            Pointer(to=self._data.unsafe_get[T]())
+            .unsafe_origin_cast[origin_of(self._data)]()[]
+        )
 
     @always_inline
     def int(self) -> Int64:
